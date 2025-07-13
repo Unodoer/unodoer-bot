@@ -3,116 +3,107 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>UNODOER Support Bot</title>
+  <title>UNODOER Wzatco Bot</title>
   <style>
     body {
-      background: #0f172a;
-      color: #fff;
-      font-family: 'Segoe UI', sans-serif;
       margin: 0;
       padding: 0;
+      background-image: url('A_showroom_image_in_the_digital_illustration_mediu.png');
+      background-size: cover;
+      background-position: center;
+      font-family: Arial, sans-serif;
+      color: white;
     }
-    header {
-      background: #1e293b;
-      padding: 16px;
+    .chat-container {
+      background: rgba(0, 0, 0, 0.6);
+      max-width: 600px;
+      margin: 100px auto;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 0 15px #000;
+    }
+    .chat-header {
       text-align: center;
-      font-size: 1.5rem;
+      font-size: 28px;
       font-weight: bold;
+      margin-bottom: 20px;
+      color: #00ffe1;
     }
-    #chatbox {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 20px;
-      height: 70vh;
+    .messages {
+      max-height: 300px;
       overflow-y: auto;
-      display: flex;
-      flex-direction: column;
+      margin-bottom: 20px;
     }
-    .message {
+    .user, .bot {
       margin: 10px 0;
-      padding: 10px 15px;
-      border-radius: 12px;
-      max-width: 80%;
     }
     .user {
-      background: #38bdf8;
-      color: #000;
-      align-self: flex-end;
+      text-align: right;
+      color: #add8e6;
     }
     .bot {
-      background: #334155;
-      color: #fff;
-      align-self: flex-start;
+      text-align: left;
+      color: #ffffff;
     }
-    #inputArea {
-      display: flex;
-      max-width: 800px;
-      margin: 20px auto;
-      padding: 0 20px 20px;
-    }
-    #userInput {
-      flex: 1;
-      padding: 12px;
-      border-radius: 8px 0 0 8px;
+    input[type="text"] {
+      width: 80%;
+      padding: 10px;
+      border-radius: 10px;
       border: none;
-      font-size: 1rem;
+      margin-right: 10px;
     }
-    #sendBtn {
-      padding: 12px 18px;
+    button {
+      padding: 10px 20px;
       border: none;
-      background: #38bdf8;
-      color: #000;
+      border-radius: 10px;
+      background-color: #00ffe1;
+      color: black;
       font-weight: bold;
-      border-radius: 0 8px 8px 0;
       cursor: pointer;
     }
-    #sendBtn:hover {
-      background: #0ea5e9;
+    button:hover {
+      background-color: #00cccc;
     }
   </style>
 </head>
 <body>
-  <header>🤖 UNODOER Support Bot</header>
-  <div id="chatbox"></div>
-  <div id="inputArea">
-    <input type="text" id="userInput" placeholder="Type your question..." />
-    <button id="sendBtn" onclick="sendMessage()">Send</button>
+  <div class="chat-container">
+    <div class="chat-header">🤖 UNODOER Wzatco Bot</div>
+    <div class="messages" id="messages"></div>
+    <form id="chat-form">
+      <input type="text" id="user-input" placeholder="Ask anything..." autocomplete="off" required />
+      <button type="submit">Send</button>
+    </form>
   </div>
 
   <script>
-    const chatbox = document.getElementById("chatbox");
-    const input = document.getElementById("userInput");
+    const form = document.getElementById('chat-form');
+    const input = document.getElementById('user-input');
+    const messagesDiv = document.getElementById('messages');
 
-    function appendMessage(text, sender) {
-      const div = document.createElement("div");
-      div.className = `message ${sender}`;
-      div.innerText = text;
-      chatbox.appendChild(div);
-      chatbox.scrollTop = chatbox.scrollHeight;
-    }
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const userText = input.value;
+      appendMessage('user', userText);
+      input.value = '';
 
-    async function sendMessage() {
-      const userMessage = input.value.trim();
-      if (!userMessage) return;
-      appendMessage(userMessage, "user");
-      input.value = "";
+      const response = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userText })
+      });
 
-      try {
-        const response = await fetch("/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: userMessage })
-        });
-        const data = await response.json();
-        appendMessage(data.reply || "No reply", "bot");
-      } catch (err) {
-        appendMessage("⚠️ Error reaching support bot.", "bot");
-      }
-    }
-
-    input.addEventListener("keydown", function (e) {
-      if (e.key === "Enter") sendMessage();
+      const data = await response.json();
+      appendMessage('bot', data.reply);
     });
+
+    function appendMessage(sender, text) {
+      const messageEl = document.createElement('div');
+      messageEl.classList.add(sender);
+      messageEl.innerText = text;
+      messagesDiv.appendChild(messageEl);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
   </script>
 </body>
 </html>
