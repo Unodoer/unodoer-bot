@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UNODOER Support Bot</title>
+  <style>
+    body {
+      background: #0f172a;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #1e293b;
+      padding: 16px;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    #chatbox {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      height: 70vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .message {
+      margin: 10px 0;
+      padding: 10px 15px;
+      border-radius: 12px;
+      max-width: 80%;
+    }
+    .user {
+      background: #38bdf8;
+      color: #000;
+      align-self: flex-end;
+    }
+    .bot {
+      background: #334155;
+      color: #fff;
+      align-self: flex-start;
+    }
+    #inputArea {
+      display: flex;
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 0 20px 20px;
+    }
+    #userInput {
+      flex: 1;
+      padding: 12px;
+      border-radius: 8px 0 0 8px;
+      border: none;
+      font-size: 1rem;
+    }
+    #sendBtn {
+      padding: 12px 18px;
+      border: none;
+      background: #38bdf8;
+      color: #000;
+      font-weight: bold;
+      border-radius: 0 8px 8px 0;
+      cursor: pointer;
+    }
+    #sendBtn:hover {
+      background: #0ea5e9;
+    }
+  </style>
+</head>
+<body>
+  <header>🤖 UNODOER Support Bot</header>
+  <div id="chatbox"></div>
+  <div id="inputArea">
+    <input type="text" id="userInput" placeholder="Type your question..." />
+    <button id="sendBtn" onclick="sendMessage()">Send</button>
+  </div>
+
+  <script>
+    const chatbox = document.getElementById("chatbox");
+    const input = document.getElementById("userInput");
+
+    function appendMessage(text, sender) {
+      const div = document.createElement("div");
+      div.className = `message ${sender}`;
+      div.innerText = text;
+      chatbox.appendChild(div);
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const userMessage = input.value.trim();
+      if (!userMessage) return;
+      appendMessage(userMessage, "user");
+      input.value = "";
+
+      try {
+        const response = await fetch("/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: userMessage })
+        });
+        const data = await response.json();
+        appendMessage(data.reply || "No reply", "bot");
+      } catch (err) {
+        appendMessage("⚠️ Error reaching support bot.", "bot");
+      }
+    }
+
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") sendMessage();
+    });
+  </script>
+</body>
+</html>
