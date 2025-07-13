@@ -8,7 +8,7 @@ app.use(bodyParser.json());
 app.use(express.static("public"));
 
 // ✅ Replace with your actual published sheet URL
-const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsE8ko-FUw7yfzkEwXvBm2aGSrpTRk2UCnX-bkLKR0uEBNVWoKHqLNOF8fRjz8FYvtOlrL6xdbv3N7/pubhtml";
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsE8ko-FUw7yfzkEwXvBm2aGSrpTRk2UCnX-bkLKR0uEBNVWoKHqLNOF8fRjz8FYvtOlrL6xdbv3N7/gviz/tq?tqx=out:json";
 
 app.post("/chat", async (req, res) => {
   const userMessage = req.body.message;
