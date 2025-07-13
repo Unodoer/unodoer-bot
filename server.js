@@ -33,14 +33,40 @@ app.post("/chat", async (req, res) => {
       answer: row.c[1]?.v || "No answer available"
     }));
 
-    // ✅ Match user question to FAQ
     const matched = faqs.find(faq =>
-      userMessage.toLowerCase().includes(faq.question)
-    );
+  userMessage.toLowerCase().includes(faq.question)
+);
 
-    if (matched) {
-      return res.json({ reply: matched.answer });
-    }
+if (matched && matched.answer) {
+  return res.json({ reply: matched.answer });
+}
+
+// 💡 Not found in sheet → Ask ChatGPT
+const gptRes = await fetch("https://api.openai.com/v1/chat/completions", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${OPENAI_API_KEY}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    model: "gpt-3.5-turbo",
+    messages: [
+      {
+        role: "system",
+        content: "You are a helpful support assistant for Wzatco projectors. Answer clearly and helpfully."
+      },
+      {
+        role: "user",
+        content: userMessage
+      }
+    ]
+  }),
+});
+
+const gptData = await gptRes.json();
+const botReply = gptData.choices?.[0]?.message?.content?.trim() || "⚠️ Sorry, I couldn’t generate a response.";
+res.json({ reply: botReply });
+
 
     // ✅ Fallback: use OpenAI to answer
     const gptRes = await fetch("https://api.openai.com/v1/chat/completions", {
