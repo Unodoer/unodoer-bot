@@ -3,6 +3,8 @@ const bodyParser = require("body-parser");
 const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// ✅ Your correctly published Google Sheet JSON URL
 const SHEET_JSON_URL = "https://docs.google.com/spreadsheets/d/1nR24LNPAMOFw8jR-KHJmJgfwI-vCnh2_hl3_O4TF-X8/gviz/tq?tqx=out:json";
 
 app.use(express.static(path.join(__dirname, "public")));
@@ -19,25 +21,28 @@ app.post("/chat", async (req, res) => {
   try {
     const fetch = (await import("node-fetch")).default;
 
+    // ✅ Fetch and clean the Google Sheet JSON response
     const sheetRes = await fetch(SHEET_JSON_URL);
     const sheetText = await sheetRes.text();
-    const jsonText = sheetText.replace(/^.*?\(/, "").replace(/\);$/, "");
+    const jsonText = sheetText.replace(/^[^\(]*\(/, "").replace(/\);$/, "");
     const data = JSON.parse(jsonText);
 
+    // ✅ Parse questions and answers
     const faqs = data.table.rows.map(row => ({
       question: row.c[0]?.v?.toLowerCase() || "",
       answer: row.c[1]?.v || "No answer available"
     }));
 
+    // ✅ Match user question to FAQ
     const matched = faqs.find(faq =>
       userMessage.toLowerCase().includes(faq.question)
     );
 
-    if (matched && matched.answer.trim() !== "") {
+    if (matched) {
       return res.json({ reply: matched.answer });
     }
 
-    // 💬 Fallback to ChatGPT
+    // ✅ Fallback: use OpenAI to answer
     const gptRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -47,15 +52,9 @@ app.post("/chat", async (req, res) => {
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
         messages: [
-          {
-            role: "system",
-            content: "You are a helpful support assistant for Wzatco projectors. Answer user questions like a professional human support agent."
-          },
-          {
-            role: "user",
-            content: userMessage
-          }
-        ]
+          { role: "system", content: "You are a helpful support assistant for Wzatco projectors." },
+          { role: "user", content: userMessage },
+        ],
       }),
     });
 
