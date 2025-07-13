@@ -5,7 +5,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ✅ Replace with your published Google Sheet JSON URL
-const SHEET_JSON_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsE8ko-FUw7yfzkEwXvBm2aGSrpTRk2UCnX-bkLKR0uEBNVWoKHqLNOF8fRjz8FYvtOlrL6xdbv3N7/gviz/tq?tqx=out:json";
+const SHEET_JSON_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSsE8ko-FUw7yfzkEwXvBm2aGSrpTRk2UCnX-bkLKR0uEBNVWoKHqLNOF8fRjz8FYvtOlrL6xdbv3N7//gviz/tq?tqx=out:json
+";
 
 app.use(express.static(path.join(__dirname, "public")));
 app.use(bodyParser.json());
