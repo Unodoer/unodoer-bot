@@ -1,247 +1,49 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>UNODOER Wzatco Bot</title>
+  <title>WZATCO Support Bot</title>
   <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-image: url('A_showroom_image_in_the_digital_illustration_mediu.png');
-      background-size: cover;
-      background-position: center;
-      background-attachment: fixed;
-      color: #fff;
-    }
-
-    .chat-container {
-      background: rgba(0, 0, 0, 0.75);
-      max-width: 650px;
-      margin: 80px auto;
-      padding: 40px 30px;
-      border-radius: 16px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(5px);
-    }
-
-    .chat-header {
-      text-align: center;
-      font-size: 30px;
-      font-weight: 700;
-      color: #00ffe1;
-      margin-bottom: 25px;
-      text-shadow: 1px 1px 5px #000;
-    }
-
-    .messages {
-      max-height: 350px;
-      overflow-y: auto;
-      margin-bottom: 20px;
-      padding-right: 10px;
-    }
-
-    .bubble {
-      max-width: 75%;
-      padding: 10px 15px;
-      border-radius: 20px;
-      margin: 8px 0;
-      line-height: 1.4;
-      display: inline-block;
-      word-wrap: break-word;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-      animation: fadeIn 0.3s ease-in-out;
-    }
-
-    .user {
-      text-align: right;
-    }
-
-    .user .bubble {
-      background-color: #00d9ff;
-      color: #000;
-      border-bottom-right-radius: 0;
-    }
-
-    .bot {
-      text-align: left;
-    }
-
-    .bot .bubble {
-      background-color: #fff;
-      color: #000;
-      border-bottom-left-radius: 0;
-    }
-
-    form {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    input[type="text"] {
-      flex: 1;
-      padding: 12px 15px;
-      border-radius: 10px;
-      border: none;
-      font-size: 16px;
-    }
-
-    input[type="file"] {
-      margin-top: 10px;
-      color: #fff;
-    }
-
-    button {
-      padding: 12px 20px;
-      border: none;
-      border-radius: 10px;
-      background-color: #00ffe1;
-      color: #000;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    button:hover {
-      background-color: #00cccc;
-    }
-
-    @media (max-width: 768px) {
-      .chat-container {
-        margin: 30px 10px;
-        padding: 25px 20px;
-      }
-
-      .chat-header {
-        font-size: 24px;
-      }
-
-      input[type="text"] {
-        font-size: 14px;
-      }
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .typing {
-      font-style: italic;
-      opacity: 0.7;
-    }
+    body { font-family: Arial; padding: 20px; background: #f7f7f7; }
+    #chat { max-width: 600px; margin: auto; background: #fff; padding: 15px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    .msg { margin-bottom: 10px; }
+    .user { color: blue; }
+    .bot { color: green; }
   </style>
 </head>
 <body>
-  <div class="chat-container">
-    <div class="chat-header">🤖 UNODOER Wzatco Bot</div>
-    <div class="messages" id="messages"></div>
-    <form id="chat-form">
-      <input type="text" id="user-input" placeholder="Ask me anything..." autocomplete="off" required />
-      <button type="submit">Send</button>
-      <input type="file" id="file-input" />
-    </form>
+  <div id="chat">
+    <div id="messages"></div>
+    <input id="input" type="text" placeholder="Ask me anything..." style="width: 80%;">
+    <button onclick="send()">Send</button>
   </div>
 
-  <!-- SOUND FILES -->
-  <audio id="send-sound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_bf6c6ebfa5.mp3"></audio>
-  <audio id="receive-sound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_d264a27328.mp3"></audio>
-
   <script>
-    const form = document.getElementById('chat-form');
-    const input = document.getElementById('user-input');
-    const messagesDiv = document.getElementById('messages');
-    const sendSound = document.getElementById('send-sound');
-    const receiveSound = document.getElementById('receive-sound');
+    async function send() {
+      const input = document.getElementById("input");
+      const msg = input.value.trim();
+      if (!msg) return;
+      
+      appendMessage("user", msg);
+      input.value = "";
 
-    window.onload = () => {
-      setTimeout(() => {
-        showTyping();
-        setTimeout(() => {
-          removeTyping();
-          appendMessage('bot', "Hi there! I’m UNODOER, your Wzatco support assistant. How can I help you today?");
-          receiveSound.play();
-        }, 1000);
-      }, 300);
-    };
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const userText = input.value.trim();
-      if (!userText) return;
-
-      appendMessage('user', userText);
-      sendSound.play();
-      input.value = '';
-
-      if (userText.toLowerCase().includes("speak to agent")) {
-        showTyping();
-        setTimeout(() => {
-          removeTyping();
-          appendMessage('bot', "Sure! Redirecting you to our WhatsApp support...");
-          receiveSound.play();
-          setTimeout(() => {
-            window.location.href = "https://wa.me/918150055103"; // ✅ Your real WhatsApp number
-          }, 1500);
-        }, 1000);
-        return;
-      }
-
-      showTyping();
-
-      const response = await fetch('/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userText })
+      const res = await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: msg })
       });
 
-      const data = await response.json();
-
-      setTimeout(() => {
-        removeTyping();
-        appendMessage('bot', data.reply);
-        receiveSound.play();
-      }, 1000);
-    });
+      const data = await res.json();
+      appendMessage("bot", data.reply);
+    }
 
     function appendMessage(sender, text) {
-      const messageWrapper = document.createElement('div');
-      messageWrapper.classList.add(sender);
-
-      const bubble = document.createElement('div');
-      bubble.classList.add('bubble');
-      bubble.innerText = text;
-
-      messageWrapper.appendChild(bubble);
-      messagesDiv.appendChild(messageWrapper);
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      const div = document.getElementById("messages");
+      const msg = document.createElement("div");
+      msg.className = "msg " + sender;
+      msg.textContent = `${sender === "user" ? "You" : "Bot"}: ${text}`;
+      div.appendChild(msg);
+      div.scrollTop = div.scrollHeight;
     }
-
-    function showTyping() {
-      const typingEl = document.createElement('div');
-      typingEl.classList.add('bot');
-      typingEl.id = 'typing';
-      typingEl.innerHTML = `<div class="bubble typing">Typing...</div>`;
-      messagesDiv.appendChild(typingEl);
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    }
-
-    function removeTyping() {
-      const typingEl = document.getElementById('typing');
-      if (typingEl) typingEl.remove();
-    }
-
-    // File upload handler
-    document.getElementById('file-input').addEventListener('change', (event) => {
-      const file = event.target.files[0];
-      if (file) {
-        appendMessage('user', `📎 You uploaded: ${file.name}`);
-        sendSound.play();
-        // Optional: Upload to backend
-      }
-    });
   </script>
 </body>
 </html>
