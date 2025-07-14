@@ -1,48 +1,56 @@
+// server.js
 const express = require("express");
 const bodyParser = require("body-parser");
+const mysql = require("mysql2/promise");
 const path = require("path");
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ✅ Your correctly published Google Sheet JSON URL
-const SHEET_JSON_URL = "https://docs.google.com/spreadsheets/d/1nR24LNPAMOFw8jR-KHJmJgfwI-vCnh2_hl3_O4TF-X8/gviz/tq?tqx=out:json";
+// ✅ Environment Variables (set in .env or hardcoded for testing)
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const DB_CONFIG = {
+  host: process.env.DB_HOST || "localhost",
+  user: process.env.DB_USER || "root",
+  password: process.env.DB_PASSWORD || "",
+  database: process.env.DB_NAME || "wzatco"
+};
 
 app.use(express.static(path.join(__dirname, "public")));
 app.use(bodyParser.json());
 
+// ✅ Main Chat Endpoint
 app.post("/chat", async (req, res) => {
-  const userMessage = req.body.message;
+  const userMessage = req.body.message?.trim();
   if (!userMessage) {
-    return res.json({ reply: "❗ No message received." });
+    return res.status(400).json({ reply: "❗ Please send a message." });
   }
 
-  const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+  try {
+    const db = await mysql.createConnection(DB_CONFIG);
 
+    // 🔍 Try to fetch knowledge base from MySQL
+    const [rows] = await db.execute(
+      "SELECT content FROM knowledge_base ORDER BY updated_at DESC LIMIT 1"
+    );
+    await db.end();
+
+    let knowledgeBase = rows?.[0]?.content || "";
+
+    // ✅ Try to match message in KB content (simple match)
+    if (knowledgeBase.toLowerCase().includes(userMessage.toLowerCase())) {
+      return res.json({ reply: knowledgeBase });
+    }
+
+  } catch (dbError) {
+    console.error("❗ DB error:", dbError.message);
+    // Continue to OpenAI fallback
+  }
+
+  // 💬 Fallback: OpenAI ChatGPT
   try {
     const fetch = (await import("node-fetch")).default;
 
-    // ✅ Fetch and clean the Google Sheet JSON response
-    const sheetRes = await fetch(SHEET_JSON_URL);
-    const sheetText = await sheetRes.text();
-    const jsonText = sheetText.replace(/^[^\(]*\(/, "").replace(/\);$/, "");
-    const data = JSON.parse(jsonText);
-
-    // ✅ Parse questions and answers
-    const faqs = data.table.rows.map(row => ({
-      question: row.c[0]?.v?.toLowerCase() || "",
-      answer: row.c[1]?.v || "No answer available"
-    }));
-
-    // ✅ Match user question to FAQ
-    const matched = faqs.find(faq =>
-      userMessage.toLowerCase().includes(faq.question)
-    );
-
-    if (matched) {
-      return res.json({ reply: matched.answer });
-    }
-
-    // ✅ Fallback: use OpenAI to answer
     const gptRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -52,21 +60,25 @@ app.post("/chat", async (req, res) => {
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
         messages: [
-          { role: "system", content: "You are a helpful support assistant for Wzatco projectors." },
-          { role: "user", content: userMessage },
+          { role: "system", content: "You are a helpful support bot for WZATCO projectors." },
+          { role: "user", content: userMessage }
         ],
+        temperature: 0.7,
       }),
     });
 
-    const gptData = await gptRes.json();
-    const botReply = gptData.choices?.[0]?.message?.content?.trim() || "Sorry, I couldn't generate a response.";
-    res.json({ reply: botReply });
+    const data = await gptRes.json();
+    const reply = data.choices?.[0]?.message?.content || "I'm not sure how to help with that.";
 
-  } catch (error) {
-    res.json({ reply: "⚠️ Error: " + error.message });
+    res.json({ reply });
+
+  } catch (aiError) {
+    console.error("❗ OpenAI error:", aiError.message);
+    res.status(500).json({ reply: "⚠️ Sorry, something went wrong." });
   }
 });
 
+// ✅ Start the server
 app.listen(PORT, () => {
-  console.log(`✅ UNODOER Bot server running at http://localhost:${PORT}`);
+  console.log(`🤖 UNODOER JS Bot running at http://localhost:${PORT}`);
 });
