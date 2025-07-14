@@ -13,7 +13,7 @@ app.post("/chat", async (req, res) => {
   const userMessage = req.body.message?.trim();
   if (!userMessage) return res.json({ reply: "❗ No message received." });
 
-  const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+  const OPENAI_API_KEY = "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";
   try {
     const fetch = (await import("node-fetch")).default;
 
