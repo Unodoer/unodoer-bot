@@ -8,61 +8,129 @@
     body {
       margin: 0;
       padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-image: url('A_showroom_image_in_the_digital_illustration_mediu.png');
       background-size: cover;
       background-position: center;
-      font-family: Arial, sans-serif;
-      color: white;
+      background-attachment: fixed;
+      color: #fff;
     }
+
     .chat-container {
-      background: rgba(0, 0, 0, 0.6);
-      max-width: 600px;
-      margin: 100px auto;
-      padding: 30px;
-      border-radius: 20px;
-      box-shadow: 0 0 15px #000;
+      background: rgba(0, 0, 0, 0.75);
+      max-width: 650px;
+      margin: 80px auto;
+      padding: 40px 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(5px);
     }
+
     .chat-header {
       text-align: center;
-      font-size: 28px;
-      font-weight: bold;
-      margin-bottom: 20px;
+      font-size: 30px;
+      font-weight: 700;
       color: #00ffe1;
+      margin-bottom: 25px;
+      text-shadow: 1px 1px 5px #000;
     }
+
     .messages {
-      max-height: 300px;
+      max-height: 350px;
       overflow-y: auto;
       margin-bottom: 20px;
+      padding-right: 10px;
     }
-    .user, .bot {
-      margin: 10px 0;
+
+    .bubble {
+      max-width: 75%;
+      padding: 10px 15px;
+      border-radius: 20px;
+      margin: 8px 0;
+      line-height: 1.4;
+      display: inline-block;
+      word-wrap: break-word;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      animation: fadeIn 0.3s ease-in-out;
     }
+
     .user {
       text-align: right;
-      color: #add8e6;
     }
+
+    .user .bubble {
+      background-color: #00d9ff;
+      color: #000;
+      border-bottom-right-radius: 0;
+    }
+
     .bot {
       text-align: left;
-      color: #ffffff;
     }
+
+    .bot .bubble {
+      background-color: #fff;
+      color: #000;
+      border-bottom-left-radius: 0;
+    }
+
+    form {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
     input[type="text"] {
-      width: 80%;
-      padding: 10px;
+      flex: 1;
+      padding: 12px 15px;
       border-radius: 10px;
       border: none;
-      margin-right: 10px;
+      font-size: 16px;
     }
+
+    input[type="file"] {
+      margin-top: 10px;
+      color: #fff;
+    }
+
     button {
-      padding: 10px 20px;
+      padding: 12px 20px;
       border: none;
       border-radius: 10px;
       background-color: #00ffe1;
-      color: black;
+      color: #000;
       font-weight: bold;
       cursor: pointer;
+      transition: background 0.3s;
     }
+
     button:hover {
       background-color: #00cccc;
+    }
+
+    @media (max-width: 768px) {
+      .chat-container {
+        margin: 30px 10px;
+        padding: 25px 20px;
+      }
+
+      .chat-header {
+        font-size: 24px;
+      }
+
+      input[type="text"] {
+        font-size: 14px;
+      }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .typing {
+      font-style: italic;
+      opacity: 0.7;
     }
   </style>
 </head>
@@ -71,21 +139,57 @@
     <div class="chat-header">🤖 UNODOER Wzatco Bot</div>
     <div class="messages" id="messages"></div>
     <form id="chat-form">
-      <input type="text" id="user-input" placeholder="Ask anything..." autocomplete="off" required />
+      <input type="text" id="user-input" placeholder="Ask me anything..." autocomplete="off" required />
       <button type="submit">Send</button>
+      <input type="file" id="file-input" />
     </form>
   </div>
+
+  <!-- SOUND FILES -->
+  <audio id="send-sound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_bf6c6ebfa5.mp3"></audio>
+  <audio id="receive-sound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_d264a27328.mp3"></audio>
 
   <script>
     const form = document.getElementById('chat-form');
     const input = document.getElementById('user-input');
     const messagesDiv = document.getElementById('messages');
+    const sendSound = document.getElementById('send-sound');
+    const receiveSound = document.getElementById('receive-sound');
+
+    window.onload = () => {
+      setTimeout(() => {
+        showTyping();
+        setTimeout(() => {
+          removeTyping();
+          appendMessage('bot', "Hi there! I’m UNODOER, your Wzatco support assistant. How can I help you today?");
+          receiveSound.play();
+        }, 1000);
+      }, 300);
+    };
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const userText = input.value;
+      const userText = input.value.trim();
+      if (!userText) return;
+
       appendMessage('user', userText);
+      sendSound.play();
       input.value = '';
+
+      if (userText.toLowerCase().includes("speak to agent")) {
+        showTyping();
+        setTimeout(() => {
+          removeTyping();
+          appendMessage('bot', "Sure! Redirecting you to our WhatsApp support...");
+          receiveSound.play();
+          setTimeout(() => {
+            window.location.href = "https://wa.me/918150055103"; // ✅ Your real WhatsApp number
+          }, 1500);
+        }, 1000);
+        return;
+      }
+
+      showTyping();
 
       const response = await fetch('/chat', {
         method: 'POST',
@@ -94,16 +198,50 @@
       });
 
       const data = await response.json();
-      appendMessage('bot', data.reply);
+
+      setTimeout(() => {
+        removeTyping();
+        appendMessage('bot', data.reply);
+        receiveSound.play();
+      }, 1000);
     });
 
     function appendMessage(sender, text) {
-      const messageEl = document.createElement('div');
-      messageEl.classList.add(sender);
-      messageEl.innerText = text;
-      messagesDiv.appendChild(messageEl);
+      const messageWrapper = document.createElement('div');
+      messageWrapper.classList.add(sender);
+
+      const bubble = document.createElement('div');
+      bubble.classList.add('bubble');
+      bubble.innerText = text;
+
+      messageWrapper.appendChild(bubble);
+      messagesDiv.appendChild(messageWrapper);
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
+
+    function showTyping() {
+      const typingEl = document.createElement('div');
+      typingEl.classList.add('bot');
+      typingEl.id = 'typing';
+      typingEl.innerHTML = `<div class="bubble typing">Typing...</div>`;
+      messagesDiv.appendChild(typingEl);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function removeTyping() {
+      const typingEl = document.getElementById('typing');
+      if (typingEl) typingEl.remove();
+    }
+
+    // File upload handler
+    document.getElementById('file-input').addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        appendMessage('user', `📎 You uploaded: ${file.name}`);
+        sendSound.play();
+        // Optional: Upload to backend
+      }
+    });
   </script>
 </body>
 </html>
