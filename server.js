@@ -64,7 +64,10 @@ app.post("/chat", async (req, res) => {
     });
 
     const gptData = await gptRes.json();
-    const botReply = gptData.choices?.[0]?.message?.content?.trim() || "Sorry, I couldn't generate a helpful response.";
+console.log("GPT raw response:", JSON.stringify(gptData)); // ✅ Add this line
+
+const botReply = gptData.choices?.[0]?.message?.content?.trim() || "Sorry, I couldn't generate a helpful response.";
+
     res.json({ reply: botReply });
 
   } catch (error) {
