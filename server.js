@@ -71,7 +71,11 @@ app.post("/chat", async (req, res) => {
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
         messages: [
-          { role: "system", content: "You are WZATBOT, a calm, friendly, and helpful support agent for Wzatco projectors. Always respond politely, even to casual greetings." },
+           { 
+  role: "system", 
+  content: "You are WZATBOT, a multilingual customer support agent for Wzatco projectors. Automatically detect the user's language and reply in the same language. You can understand and respond in any language. Be natural, kind, and helpful — like a real person." 
+}
+,
           { role: "user", content: userMessage }
         ],
         temperature: 0.7
