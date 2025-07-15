@@ -1,4 +1,5 @@
 // server.js
+require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const mysql = require("mysql2/promise");
@@ -7,7 +8,7 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ✅ Environment Variables (set in .env or hardcoded for testing)
+// ✅ Config
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const DB_CONFIG = {
   host: process.env.DB_HOST || "localhost",
@@ -19,52 +20,62 @@ const DB_CONFIG = {
 app.use(express.static(path.join(__dirname, "public")));
 app.use(bodyParser.json());
 
-// ✅ Main Chat Endpoint
+// ✅ POST /chat endpoint
 app.post("/chat", async (req, res) => {
   const userMessage = req.body.message?.trim();
   if (!userMessage) {
     return res.status(400).json({ reply: "❗ Please send a message." });
   }
 
+  // ✅ Casual direct replies (like "hi", "how are you", etc.)
+  const casualReplies = {
+    "how are you": "I'm doing well, thank you! 😊 Hope you're doing great too. How can I help you today?",
+    "hi": "Hi there! 👋 How can I assist you with your Wzatco projector?",
+    "hello": "Hello! 😊 How can I support you today?",
+    "ok": "Alright! Let me know if you need anything.",
+    "thanks": "You're welcome! Let me know if you need anything else.",
+    "thank you": "You're welcome! Happy to help 😊",
+  };
+
+  const lowerMsg = userMessage.toLowerCase();
+  if (casualReplies[lowerMsg]) {
+    return res.json({ reply: casualReplies[lowerMsg] });
+  }
+
+  // ✅ Try to get response from knowledge base (MySQL)
   try {
     const db = await mysql.createConnection(DB_CONFIG);
-
-    // 🔍 Try to fetch knowledge base from MySQL
     const [rows] = await db.execute(
       "SELECT content FROM knowledge_base ORDER BY updated_at DESC LIMIT 1"
     );
     await db.end();
 
-    let knowledgeBase = rows?.[0]?.content || "";
-
-    // ✅ Try to match message in KB content (simple match)
-    if (knowledgeBase.toLowerCase().includes(userMessage.toLowerCase())) {
+    const knowledgeBase = rows?.[0]?.content || "";
+    if (knowledgeBase.toLowerCase().includes(lowerMsg)) {
       return res.json({ reply: knowledgeBase });
     }
-
   } catch (dbError) {
     console.error("❗ DB error:", dbError.message);
-    // Continue to OpenAI fallback
+    // Continue to fallback
   }
 
-  // 💬 Fallback: OpenAI ChatGPT
+  // ✅ Fallback to OpenAI ChatGPT
   try {
     const fetch = (await import("node-fetch")).default;
-
     const gptRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${OPENAI_API_KEY}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
         messages: [
-          { role: "system", content: "You are a helpful support bot for WZATCO projectors." },
+          { role: "system", content: "You are WZATBOT, a calm, friendly, and helpful support agent for Wzatco projectors. Always respond politely, even to casual greetings." },
           { role: "user", content: userMessage }
         ],
-        temperature: 0.7,
-      }),
+        temperature: 0.7
+      })
     });
 
     const data = await gptRes.json();
@@ -74,11 +85,11 @@ app.post("/chat", async (req, res) => {
 
   } catch (aiError) {
     console.error("❗ OpenAI error:", aiError.message);
-    res.status(500).json({ reply: "⚠️ Sorry, something went wrong." });
+    res.status(500).json({ reply: "⚠️ Sorry, something went wrong while connecting to ChatGPT." });
   }
 });
 
-// ✅ Start the server
+// ✅ Start server
 app.listen(PORT, () => {
   console.log(`🤖 UNODOER JS Bot running at http://localhost:${PORT}`);
 });
