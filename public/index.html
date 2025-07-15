@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>WZATCO Support Bot</title>
+  <title>UNODOER Support | WZATCO</title>
   <style>
     body {
       margin: 0;
       padding: 0;
       font-family: 'Segoe UI', sans-serif;
-      background: url('https://images.unsplash.com/photo-1600585154340-be6161c5d1f4?auto=format&fit=crop&w=1470&q=80') no-repeat center center fixed;
+      background: url('https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1470&q=80') no-repeat center center fixed;
       background-size: cover;
       display: flex;
       justify-content: center;
@@ -20,23 +20,21 @@
     #chat-box {
       width: 100%;
       max-width: 500px;
-      height: 80vh;
-      background: rgba(255, 255, 255, 0.1);
+      height: 85vh;
+      background: rgba(255, 255, 255, 0.8);
       border-radius: 15px;
-      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
       display: flex;
       flex-direction: column;
       overflow: hidden;
     }
 
     #header {
-      background-color: rgba(0, 170, 255, 0.85);
+      background-color: #0077cc;
       color: white;
       text-align: center;
       padding: 12px;
-      font-size: 16px;
+      font-size: 18px;
       font-weight: bold;
     }
 
@@ -79,13 +77,13 @@
     #input-box {
       display: flex;
       padding: 10px;
-      background-color: rgba(0, 0, 0, 0.6);
+      background-color: #f0f0f0;
     }
 
     #input {
       flex: 1;
       padding: 10px;
-      border: none;
+      border: 1px solid #ccc;
       border-radius: 5px;
       font-size: 16px;
       outline: none;
@@ -107,7 +105,7 @@
     }
 
     ::placeholder {
-      color: #ccc;
+      color: #888;
     }
   </style>
 </head>
@@ -135,7 +133,7 @@
       appendMessage("user", text);
       input.value = "";
 
-      const typingMsg = appendMessage("bot", "Typing...");
+      const typingMsg = appendMessage("bot", "✍️ Typing...");
 
       try {
         const res = await fetch("/chat", {
@@ -162,6 +160,7 @@
       return msg;
     }
 
+    // Send on "Enter" key
     document.getElementById("input").addEventListener("keydown", function (e) {
       if (e.key === "Enter") {
         send();
