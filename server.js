@@ -73,7 +73,7 @@ app.post("/chat", async (req, res) => {
   messages: [
     {
       role: "system",
-      content: "You are WZATBOT, a helpful customer support assistant for WZATCO projectors. Always respond in English, no matter what language the user uses. Be clear, friendly, and professional."
+      content: "You are UNODOER AI, a helpful customer support assistant for WZATCO projectors. Always respond in English, no matter what language the user uses. Be clear, friendly, and professional."
     },
     {
       role: "user",
