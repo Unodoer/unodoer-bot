@@ -1,49 +1,171 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>WZATCO Support Bot</title>
   <style>
-    body { font-family: Arial; padding: 20px; background: #f7f7f7; }
-    #chat { max-width: 600px; margin: auto; background: #fff; padding: 15px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-    .msg { margin-bottom: 10px; }
-    .user { color: blue; }
-    .bot { color: green; }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #1a1a1a, #222);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    #chat-box {
+      width: 100%;
+      max-width: 500px;
+      height: 80vh;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 15px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      backdrop-filter: blur(8px);
+    }
+
+    #header {
+      background-color: #00aaff;
+      color: white;
+      text-align: center;
+      padding: 12px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    #header span {
+      display: block;
+      font-size: 13px;
+      font-weight: normal;
+      opacity: 0.9;
+    }
+
+    #messages {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message {
+      margin-bottom: 12px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      max-width: 80%;
+      word-wrap: break-word;
+      line-height: 1.4;
+    }
+
+    .user {
+      align-self: flex-end;
+      background-color: #007bff;
+      color: #fff;
+    }
+
+    .bot {
+      align-self: flex-start;
+      background-color: #e0e0e0;
+      color: #000;
+    }
+
+    #input-box {
+      display: flex;
+      padding: 10px;
+      background-color: #1e1e1e;
+    }
+
+    #input {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      outline: none;
+    }
+
+    #send-btn {
+      margin-left: 10px;
+      padding: 10px 20px;
+      background-color: #00aaff;
+      border: none;
+      color: white;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #send-btn:hover {
+      background-color: #008ecc;
+    }
+
+    ::placeholder {
+      color: #aaa;
+    }
   </style>
 </head>
 <body>
-  <div id="chat">
+  <div id="chat-box">
+    <div id="header">
+      🤖 UNODOER Live Support<br />
+      <span>by WZATCO Projectors</span>
+    </div>
+
     <div id="messages"></div>
-    <input id="input" type="text" placeholder="Ask me anything..." style="width: 80%;">
-    <button onclick="send()">Send</button>
+
+    <div id="input-box">
+      <input id="input" type="text" placeholder="Ask me anything..." />
+      <button id="send-btn" onclick="send()">Send</button>
+    </div>
   </div>
 
   <script>
     async function send() {
       const input = document.getElementById("input");
-      const msg = input.value.trim();
-      if (!msg) return;
-      
-      appendMessage("user", msg);
+      const text = input.value.trim();
+      if (!text) return;
+
+      appendMessage("user", text);
       input.value = "";
 
-      const res = await fetch("/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: msg })
-      });
+      const typingMsg = appendMessage("bot", "Typing...");
 
-      const data = await res.json();
-      appendMessage("bot", data.reply);
+      try {
+        const res = await fetch("/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: text }),
+        });
+
+        const data = await res.json();
+        typingMsg.textContent = data.reply;
+
+      } catch (err) {
+        typingMsg.textContent = "⚠️ Sorry, something went wrong.";
+      }
     }
 
     function appendMessage(sender, text) {
-      const div = document.getElementById("messages");
+      const messagesDiv = document.getElementById("messages");
       const msg = document.createElement("div");
-      msg.className = "msg " + sender;
-      msg.textContent = `${sender === "user" ? "You" : "Bot"}: ${text}`;
-      div.appendChild(msg);
-      div.scrollTop = div.scrollHeight;
+      msg.className = "message " + sender;
+      msg.textContent = text;
+      messagesDiv.appendChild(msg);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      return msg;
     }
+
+    document.getElementById("input").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        send();
+      }
+    });
   </script>
 </body>
 </html>
