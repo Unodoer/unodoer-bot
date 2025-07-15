@@ -9,8 +9,8 @@
       margin: 0;
       padding: 0;
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #1a1a1a, #222);
-      color: #fff;
+      background: url('https://images.unsplash.com/photo-1600585154340-be6161c5d1f4?auto=format&fit=crop&w=1470&q=80') no-repeat center center fixed;
+      background-size: cover;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -21,17 +21,18 @@
       width: 100%;
       max-width: 500px;
       height: 80vh;
-      background: rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.1);
       border-radius: 15px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      backdrop-filter: blur(8px);
     }
 
     #header {
-      background-color: #00aaff;
+      background-color: rgba(0, 170, 255, 0.85);
       color: white;
       text-align: center;
       padding: 12px;
@@ -43,7 +44,7 @@
       display: block;
       font-size: 13px;
       font-weight: normal;
-      opacity: 0.9;
+      opacity: 0.95;
     }
 
     #messages {
@@ -78,7 +79,7 @@
     #input-box {
       display: flex;
       padding: 10px;
-      background-color: #1e1e1e;
+      background-color: rgba(0, 0, 0, 0.6);
     }
 
     #input {
@@ -106,7 +107,7 @@
     }
 
     ::placeholder {
-      color: #aaa;
+      color: #ccc;
     }
   </style>
 </head>
